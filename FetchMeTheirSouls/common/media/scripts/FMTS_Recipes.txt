@@ -1,0 +1,21 @@
+module FMTS
+{
+    craftRecipe Bind Soul Lantern
+    {
+        timedAction = Making,
+        Time = 15,
+        Tags = InHandCraft,
+        category = Soulcraft,
+
+        inputs
+        {
+            item 250 [FMTS.Soul],
+            item 1 [FMTS.SoulPendant],
+        }
+
+        outputs
+        {
+            item 1 FMTS.SoulLantern,
+        }
+    }
+}

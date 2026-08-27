@@ -1,0 +1,45 @@
+module FMTS
+{
+    item Soul
+    {
+        DisplayName = Soul,
+        DisplayCategory = Material,
+        Type = Normal,
+        ItemType = Normal,
+        Weight = 0.0,
+        Icon = Soul,
+        WorldStaticModel = BookYellowBrown_Ground,
+        CanStack = TRUE,
+    }
+
+    item SoulPendant
+    {
+	DisplayName = Soul Pendant,
+        DisplayCategory = Clothing,
+        ItemType = base:container,
+        Weight = 0.2,
+        Icon = SoulPendant,
+        CanBeEquipped = base:necklace,
+        CanHaveHoles = false,
+        Capacity = 1,
+        ClothingItem = SoulPendant,
+        RunSpeedModifier = 0,
+        WeightReduction = 0,
+        Cosmetic = true,
+        WorldStaticModel = SoulPendant_Ground,
+        AcceptItemFunction = AcceptItemSoul,
+        Tags = base:ismemento,
+    }
+
+    item SoulLantern
+    {
+        DisplayName = Soul Lantern,
+        DisplayCategory = Misc,
+        Type = Normal,
+        ItemType = Normal,
+        Weight = 4.0,
+        Icon = SoulLantern,
+        WorldStaticModel = SoulLantern_Ground,
+        CanStack = FALSE,
+    }
+}

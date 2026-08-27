@@ -1,0 +1,17 @@
+module FMTS
+{
+    model SoulLantern_Ground
+    {
+        mesh = WorldItems/SoulLantern_Ground,
+        texture = SoulLantern,
+        scale = 1.0,
+    }
+
+    model SoulPendant_Ground
+    {
+        mesh = WorldItems/Necklace_Stone_Ground,
+        texture = SoulPendant,
+        scale = 0.5,
+    }
+
+}
