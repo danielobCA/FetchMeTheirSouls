@@ -79,7 +79,7 @@ function FMTSShopWindow:new(x, y, width, height, player, statue)
     self.__index = self
 
     window.player = player
-    window.title = "Soul Shop"
+    window.title = "Soul Offerings"
     window.resizable = true
     window.minimumWidth = FMTSShopWindow.MIN_WIDTH
     window.minimumHeight = FMTSShopWindow.MIN_HEIGHT

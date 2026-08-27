@@ -76,7 +76,7 @@ local function addShopTestOption(playerNum, context, worldObjects)
     end
 
     local option = context:addOption(
-        "Open Soul Shop",
+        "View Soul Offerings",
         player,
         openTestShop
     )
