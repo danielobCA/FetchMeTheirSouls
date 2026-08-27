@@ -1,0 +1,38 @@
+local MOD_DATA_KEY = "FetchMeTheirSouls_AngelicGravestone"
+local TILE_SPRITE = "location_community_cemetery_01_11"
+
+local TARGET_X = 3771
+local TARGET_Y = 12274
+local TARGET_Z = 0
+
+local function placeAngelicGravestone()
+    -- Never execute map edits on multiplayer clients.
+    if isClient() then
+        return
+    end
+
+    local modData = ModData.getOrCreate(MOD_DATA_KEY)
+
+    -- Prevent a duplicate after server restart / world reload.
+    if modData.placed then
+        return
+    end
+
+    local square = getCell():getGridSquare(TARGET_X, TARGET_Y, TARGET_Z)
+
+    if not square then
+        print("[Fetch Me Their Souls] Could not find target square: "
+            .. TARGET_X .. ", " .. TARGET_Y .. ", " .. TARGET_Z)
+        return
+    end
+
+    createTile(TILE_SPRITE, square)
+
+    modData.placed = true
+    ModData.transmit(MOD_DATA_KEY)
+
+    print("[Fetch Me Their Souls] Angelic Gravestone placed at "
+        .. TARGET_X .. ", " .. TARGET_Y .. ", " .. TARGET_Z)
+end
+
+Events.OnGameStart.Add(placeAngelicGravestone)

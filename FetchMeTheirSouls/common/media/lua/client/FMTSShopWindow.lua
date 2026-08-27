@@ -12,16 +12,27 @@ FMTSShopWindow.instance = nil
 
 FMTSShopWindow.SOUL_REFRESH_INTERVAL = 30
 FMTSShopWindow.FEEDBACK_DURATION = 8
-FMTSShopWindow.MIN_WIDTH = 500
-FMTSShopWindow.MIN_HEIGHT = 600
-FMTSShopWindow.ROW_HEIGHT = 78
+FMTSShopWindow.MIN_WIDTH = 540
+FMTSShopWindow.MIN_HEIGHT = 560
+FMTSShopWindow.ROW_HEIGHT = 70
 FMTSShopWindow.HEADER_HEIGHT = 28
 FMTSShopWindow.ICON_SIZE = 32
-FMTSShopWindow.FOOTER_HEIGHT = 78
+FMTSShopWindow.FOOTER_HEIGHT = 56
+FMTSShopWindow.FOOTER_BOTTOM_PADDING = 20
+FMTSShopWindow.CONTROL_HEIGHT = 28
 FMTSShopWindow.PRICE_ICON_SIZE = 18
-FMTSShopWindow.BUY_COLUMN_WIDTH = 92
-FMTSShopWindow.COST_COLUMN_WIDTH = 72
+FMTSShopWindow.BUY_COLUMN_WIDTH = 100
+FMTSShopWindow.COST_COLUMN_WIDTH = 80
 FMTSShopWindow.BYPASS_SOUL_REQUIREMENT = true
+
+FMTSShopWindow.CONTENT_MARGIN = 10
+FMTSShopWindow.TAB_Y = 28
+FMTSShopWindow.TAB_GAP = 4
+FMTSShopWindow.TAB_WIDTH = 124
+FMTSShopWindow.TAB_HEIGHT = 28
+FMTSShopWindow.HEADER_Y = 68
+FMTSShopWindow.TABLE_Y = 96
+FMTSShopWindow.DIVIDER_COLOR = { r = 0.45, g = 0.45, b = 0.45, a = 0.75 }
 
 
 -- Fine-tune offsets (in pixels) for visual alignment.
@@ -40,15 +51,15 @@ FMTSShopWindow.SORT_DESC_GLYPH = " v"
 -- Info popup copy, shown via the vanilla ISCollapsableWindow info
 -- icon/button (same icon + title-bar position as the Health panel).
 FMTSShopWindow.INFO_TEXT =
-    "Welcome to the Soul Shop.\n" ..
+    "Welcome to Soul Offerings.\n" ..
     "\n" ..
-    "Spend Souls earned in-game to purchase ammunition and magazines:\n" ..
+    "Trade the Souls you have collected for ammunition and magazines:\n" ..
     "- Rounds: boxes of ammunition for common calibers.\n" ..
-    "- Magazines: magazines and clips for compatible firearms.\n" ..
+    "- Magazines: clips and magazines for compatible firearms.\n" ..
     "\n" ..
-    "Click a column header (Item or Cost) to sort the list. " ..
-    "Click Buy on a row to purchase it -- the cost is deducted " ..
-    "from your Soul total immediately if you can afford it."
+    "Select a column header to sort the offerings by item or cost. " ..
+    "Choose Buy to claim an offering. The required Souls will be " ..
+    "deducted immediately, provided you have enough to pay for it."
 
 
 -- Sort-state flags per tab. Shop catalog data itself lives in
@@ -219,8 +230,8 @@ end
 function FMTSShopWindow:getColumns()
     if self.columns then return self.columns end
 
-    local left = 15
-    local right = self.width - 15
+    local left = FMTSShopWindow.CONTENT_MARGIN
+    local right = self.width - FMTSShopWindow.CONTENT_MARGIN
     local iconCellWidth = 45
     local buyDivider = right - FMTSShopWindow.BUY_COLUMN_WIDTH
     local costDivider = buyDivider - FMTSShopWindow.COST_COLUMN_WIDTH
@@ -278,12 +289,18 @@ end
 
 
 function FMTSShopWindow:createTabs()
-    self.roundsTab = ISButton:new(15, 42, 120, 28, "Rounds", self, FMTSShopWindow.onRoundsTabClick)
+    local tabY = FMTSShopWindow.TAB_Y
+    local tabWidth = FMTSShopWindow.TAB_WIDTH
+    local tabHeight = FMTSShopWindow.TAB_HEIGHT
+    local firstTabX = FMTSShopWindow.CONTENT_MARGIN
+    local secondTabX = firstTabX + tabWidth + FMTSShopWindow.TAB_GAP
+
+    self.roundsTab = ISButton:new(firstTabX, tabY, tabWidth, tabHeight, "Rounds", self, FMTSShopWindow.onRoundsTabClick)
     self.roundsTab:initialise()
     self.roundsTab.enable = false
     self:addChild(self.roundsTab)
 
-    self.magazinesTab = ISButton:new(140, 42, 120, 28, "Magazines", self, FMTSShopWindow.onMagazinesTabClick)
+    self.magazinesTab = ISButton:new(secondTabX, tabY, tabWidth, tabHeight, "Magazines", self, FMTSShopWindow.onMagazinesTabClick)
     self.magazinesTab:initialise()
     self:addChild(self.magazinesTab)
 end
@@ -321,7 +338,7 @@ end
 
 
 function FMTSShopWindow:createTableHeader()
-    self.headerPanel = ISPanel:new(15, 78, self.width - 30, FMTSShopWindow.HEADER_HEIGHT)
+    self.headerPanel = ISPanel:new(FMTSShopWindow.CONTENT_MARGIN, FMTSShopWindow.HEADER_Y, self.width - (FMTSShopWindow.CONTENT_MARGIN * 2), FMTSShopWindow.HEADER_HEIGHT)
     self.headerPanel:initialise()
     self.headerPanel:setAnchorRight(true)
     self.headerPanel.backgroundColor = { r = 0.10, g = 0.10, b = 0.10, a = 1.0 }
@@ -329,9 +346,9 @@ function FMTSShopWindow:createTableHeader()
     self.headerPanel.drawBorder = true
     self:addChild(self.headerPanel)
 
-    self.headerItem = self:createLabel(70, 83, 400, 20, "Item")
-    self.headerCost = self:createLabel(500, 83, 105, 20, "Cost")
-    self.headerBuy = self:createLabel(605, 83, 90, 20, "")
+    self.headerItem = self:createLabel(70, FMTSShopWindow.HEADER_Y + 5, 400, 20, "Item")
+    self.headerCost = self:createLabel(500, FMTSShopWindow.HEADER_Y + 5, 105, 20, "Cost")
+    self.headerBuy = self:createLabel(605, FMTSShopWindow.HEADER_Y + 5, 90, 20, "")
 
     self.costHeaderButton = ISButton:new(0, 0, 1, 1, "", self, FMTSShopWindow.onCostHeaderClick)
     self.costHeaderButton:initialise()
@@ -362,14 +379,14 @@ function FMTSShopWindow:layoutColumns()
 
     if self.costHeaderButton then
         self.costHeaderButton:setX(columns.costDivider)
-        self.costHeaderButton:setY(78)
+        self.costHeaderButton:setY(FMTSShopWindow.HEADER_Y)
         self.costHeaderButton:setWidth(columns.buyDivider - columns.costDivider)
         self.costHeaderButton:setHeight(FMTSShopWindow.HEADER_HEIGHT)
     end
 
     if self.itemHeaderButton then
         self.itemHeaderButton:setX(columns.iconDivider)
-        self.itemHeaderButton:setY(78)
+        self.itemHeaderButton:setY(FMTSShopWindow.HEADER_Y)
         self.itemHeaderButton:setWidth(columns.costDivider - columns.iconDivider)
         self.itemHeaderButton:setHeight(FMTSShopWindow.HEADER_HEIGHT)
     end
@@ -397,7 +414,7 @@ end
 
 
 function FMTSShopWindow:createTable()
-    self.table = ISScrollingListBox:new(15, 106, self.width - 30, self.height - 106 - FMTSShopWindow.FOOTER_HEIGHT)
+    self.table = ISScrollingListBox:new(FMTSShopWindow.CONTENT_MARGIN, FMTSShopWindow.TABLE_Y, self.width - (FMTSShopWindow.CONTENT_MARGIN * 2), self.height - FMTSShopWindow.TABLE_Y - FMTSShopWindow.FOOTER_HEIGHT)
     self.table:initialise()
     self.table:setAnchorRight(true)
     self.table:setAnchorBottom(true)
@@ -416,27 +433,27 @@ end
 
 function FMTSShopWindow:layoutFooter()
     local footerY = self.height - FMTSShopWindow.FOOTER_HEIGHT
-    local controlsY = footerY + math.floor((FMTSShopWindow.FOOTER_HEIGHT - 28) / 2)
+    local controlsY = self.height - FMTSShopWindow.FOOTER_BOTTOM_PADDING - FMTSShopWindow.CONTROL_HEIGHT
 
     if self.soulPanel then
-        self.soulPanel:setX(15)
+        self.soulPanel:setX(FMTSShopWindow.CONTENT_MARGIN)
         self.soulPanel:setY(controlsY)
     end
 
     if self.closeButton then
-        self.closeButton:setX(self.width - 105)
+        self.closeButton:setX(self.width - FMTSShopWindow.CONTENT_MARGIN - self.closeButton.width)
         self.closeButton:setY(controlsY)
     end
 end
 
 
 function FMTSShopWindow:createFooter()
-    local height = 28
+    local height = FMTSShopWindow.CONTROL_HEIGHT
     local iconSize = 20
     local padding = 10
     local gap = 8
 
-    self.soulPanel = ISPanel:new(15, 0, 150, height)
+    self.soulPanel = ISPanel:new(FMTSShopWindow.CONTENT_MARGIN, 0, 150, height)
     self.soulPanel:initialise()
     self.soulPanel:setAnchorLeft(true)
     self.soulPanel:setAnchorRight(false)
@@ -636,12 +653,16 @@ function FMTSShopWindow:drawTableRow(y, item, alt)
     local mouseY = list:getMouseY()
     local displayName = target:getItemName(row.item)
 
-    if alt then list:drawRect(0, y, width, rowHeight, 0.18, 0.18, 0.18, 0.18) end
+    if alt then list:drawRect(0, y, width, rowHeight, 0.12, 0.12, 0.12, 0.22) end
 
-    list:drawRect(0, y + rowHeight - 1, width, 1, 0.45, 0.45, 0.45, 0.75)
-    list:drawRect(columns.iconDivider, y, 1, rowHeight, 0.45, 0.45, 0.45, 0.75)
-    list:drawRect(columns.costDivider, y, 1, rowHeight, 0.45, 0.45, 0.45, 0.75)
-    list:drawRect(columns.buyDivider, y, 1, rowHeight, 0.45, 0.45, 0.45, 0.75)
+    if mouseY >= y and mouseY <= y + rowHeight then
+        list:drawRect(0, y, width, rowHeight, 0.35, 0.35, 0.35, 0.12)
+    end
+
+    list:drawRect(0, y + rowHeight - 1, width, 1, FMTSShopWindow.DIVIDER_COLOR.r, FMTSShopWindow.DIVIDER_COLOR.g, FMTSShopWindow.DIVIDER_COLOR.b, FMTSShopWindow.DIVIDER_COLOR.a)
+    list:drawRect(columns.iconDivider, y, 1, rowHeight, FMTSShopWindow.DIVIDER_COLOR.r, FMTSShopWindow.DIVIDER_COLOR.g, FMTSShopWindow.DIVIDER_COLOR.b, FMTSShopWindow.DIVIDER_COLOR.a)
+    list:drawRect(columns.costDivider, y, 1, rowHeight, FMTSShopWindow.DIVIDER_COLOR.r, FMTSShopWindow.DIVIDER_COLOR.g, FMTSShopWindow.DIVIDER_COLOR.b, FMTSShopWindow.DIVIDER_COLOR.a)
+    list:drawRect(columns.buyDivider, y, 1, rowHeight, FMTSShopWindow.DIVIDER_COLOR.r, FMTSShopWindow.DIVIDER_COLOR.g, FMTSShopWindow.DIVIDER_COLOR.b, FMTSShopWindow.DIVIDER_COLOR.a)
 
     local texture = target:getItemTexture(row.item)
 
@@ -790,7 +811,7 @@ function FMTSShopWindow:onResize()
 
     if self.table then
         self.table:setWidth(self.width - 30)
-        self.table:setHeight(self.height - 106 - FMTSShopWindow.FOOTER_HEIGHT)
+        self.table:setHeight(self.height - FMTSShopWindow.TABLE_Y - FMTSShopWindow.FOOTER_HEIGHT)
     end
 
     self:layoutColumns()
