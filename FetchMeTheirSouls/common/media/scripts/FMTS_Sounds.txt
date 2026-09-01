@@ -1,0 +1,22 @@
+module Base
+{
+    sound FMTS_SoulPurchase
+    {
+        category = UI,
+        clip
+        {
+            file = media/sound/FMTS_BuySound.ogg,
+            volume = 0.50,
+        }
+    }
+	sound FMTS_SoulRefresh
+	{
+		category = UI,
+		clip
+		{
+			file = media/sound/FMTS_RefreshSound.ogg,
+			volume = 0.50,
+		}
+	}
+}
+

@@ -18,8 +18,8 @@ local function hasSoulPendantEquipped(player)
     return false
 end
 
-local SHOP_TILE_SCRIPT_PREFIX = "Moveables.location_community_cemetary_01_"
-local SHOP_TILE_SPRITE_PREFIX = "location_community_cemetary_01_"
+local SHOP_TILE_SCRIPT_PREFIX = "Moveables.location_community_cemetary_01_11"
+local SHOP_TILE_SPRITE_PREFIX = "location_community_cemetary_01_11"
 
 local function isShopScript(worldObject)
     local itemName = worldObject.getItemName and worldObject:getItemName()
