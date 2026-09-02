@@ -1,5 +1,5 @@
 local MOD_DATA_KEY = "FetchMeTheirSouls_AngelicGravestone"
-local TILE_SPRITE = "location_community_cemetery_01_11"
+local TILE_SPRITE = "location_community_cemetary_01_11"
 
 local TARGET_X = 3771
 local TARGET_Y = 12274

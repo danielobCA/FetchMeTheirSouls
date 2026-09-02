@@ -94,23 +94,8 @@ local function pickRandomProducts(pool, count)
 end
 
 
--- Rebuilds the on-sale table from the full catalogs and refreshes any open shop window.
-function ShopRefresh.RefreshProducts()
-    local picked = {}
-
-    for _, entry in ipairs(pickRandomProducts(FMTSShopData.ALL_AMMUNITION, ShopRefresh.PRODUCTS_PER_POOL)) do
-        table.insert(picked, entry)
-    end
-
-    for _, entry in ipairs(pickRandomProducts(FMTSShopData.ALL_MAGAZINES, ShopRefresh.PRODUCTS_PER_POOL)) do
-        table.insert(picked, entry)
-    end
-
-    for _, entry in ipairs(pickRandomProducts(FMTSShopData.ALL_TOOLS_WEAPONS, ShopRefresh.PRODUCTS_PER_POOL)) do
-        table.insert(picked, entry)
-    end
-
-    FMTSShopData.PRODUCTS = picked
+function ShopRefresh.ApplyProducts(products, hoursUntilRefresh)
+    FMTSShopData.PRODUCTS = products
 
     if not FMTSShopWindow then return end
 
@@ -135,22 +120,3 @@ function ShopRefresh.GetHoursUntilNextRefresh()
 end
 
 
-local function checkForDailyRefresh()
-    if getGameTime():getHour() ~= ShopRefresh.REFRESH_HOUR then return end
-
-    local currentKey = getDayKey()
-    if ShopRefresh.lastRefreshDayKey == currentKey then return end
-
-    ShopRefresh.lastRefreshDayKey = currentKey
-    ShopRefresh.RefreshProducts()
-end
-
-
-local function initializeShopRefresh()
-    ShopRefresh.lastRefreshDayKey = getDayKey()
-    ShopRefresh.RefreshProducts()
-end
-
-
-Events.OnGameStart.Add(initializeShopRefresh)
-Events.EveryHours.Add(checkForDailyRefresh)

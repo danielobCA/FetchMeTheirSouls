@@ -25,7 +25,7 @@ FMTSShopWindow.PRICE_ICON_SIZE = 18
 FMTSShopWindow.BUY_COLUMN_WIDTH = 100
 FMTSShopWindow.COST_COLUMN_WIDTH = 80
 FMTSShopWindow.TYPE_COLUMN_WIDTH = 100
-FMTSShopWindow.BYPASS_SOUL_REQUIREMENT = true
+FMTSShopWindow.BYPASS_SOUL_REQUIREMENT = false
 FMTSShopWindow.MANUAL_REFRESH_COST = 50
 FMTSShopWindow.PURCHASE_SOUND = "FMTS_SoulPurchase"
 FMTSShopWindow.REFRESH_SOUND = "FMTS_SoulRefresh"
@@ -90,6 +90,7 @@ function FMTSShopWindow:new(x, y, width, height, player, statue)
     window.lastSoulCount = -1
     window.refreshCounter = 0
     window.feedback = {}
+    window.pendingAction = nil
 
     window.itemTextures = {}
     window.itemInfo = {}
@@ -788,20 +789,13 @@ end
 
 
 function FMTSShopWindow:onBuyRow(entry)
-    if not entry then return end
-    if not FMTSShopWindow.BYPASS_SOUL_REQUIREMENT and self:getSoulCount() < entry.cost then
-        return
-    end
+    if not entry or not self.player then return end
+    if self.pendingAction then return end
 
-    if not FMTSShopWindow.BYPASS_SOUL_REQUIREMENT and not FMTS.RemoveSouls(self.player, entry.cost) then
-        self:refreshSoulCount()
-        return
-    end
-
-    self.player:getInventory():AddItem(entry.item)
-    self:playPurchaseSound()
-    self:setSuccessFeedback(entry)
-    self:refreshSoulCount()
+    self.pendingAction = "buy"
+    sendClientCommand("FMTS", "BuyItem", {
+        offeringId = entry.id,
+    })
 end
 
 
@@ -811,26 +805,56 @@ end
 
 
 function FMTSShopWindow:onRefreshShopButton()
-    if not FMTS.ShopRefresh then return end
+    if self.pendingAction then return end
 
-    if not FMTSShopWindow.BYPASS_SOUL_REQUIREMENT and self:getSoulCount() < FMTSShopWindow.MANUAL_REFRESH_COST then
+    self.pendingAction = "refresh"
+    sendClientCommand("FMTS", "RefreshShop", {})
+end
+
+
+function FMTSShopWindow:handleServerCommand(module, command, args)
+    if module ~= "FMTS" then
         return
     end
 
-    if not FMTSShopWindow.BYPASS_SOUL_REQUIREMENT and not FMTS.RemoveSouls(self.player, FMTSShopWindow.MANUAL_REFRESH_COST) then
+    if command == "BuyItemResult" then
+        self.pendingAction = nil
+
+        if args and args.ok and args.item then
+            if args.spent then
+                FMTS.RemoveSouls(self.player, args.spent)
+            end
+            self.player:getInventory():AddItem(args.item)
+            self:setSuccessFeedback({ item = args.item })
+            self:playPurchaseSound()
+        end
+
         self:refreshSoulCount()
         return
     end
 
-    FMTS.ShopRefresh.RefreshProducts()
-    FMTSShopWindow.PRODUCTS_SORTED = false
-    self.populatedColumn = nil
-    self.populatedAscending = nil
-    self:sortProductList()
-    self:populateTable()
-    self:playRefreshSound()
-    self:refreshSoulCount()
-    self:updateNextUpdateLabel()
+    if command == "RefreshShopResult" then
+        self.pendingAction = nil
+
+        if args and args.ok then
+            if args.spent then
+                FMTS.RemoveSouls(self.player, args.spent)
+            end
+            self:playRefreshSound()
+        end
+
+        self:refreshSoulCount()
+        self:updateNextUpdateLabel()
+        return
+    end
+
+    if command == "ShopCatalog" then
+        if FMTS.ShopRefresh and args and args.products then
+            FMTS.ShopRefresh.ApplyProducts(args.products, args.hoursUntilRefresh)
+        end
+
+        self:refreshSoulCount()
+    end
 end
 
 
@@ -840,7 +864,12 @@ end
 
 
 function FMTSShopWindow:refreshSoulCount()
-    local souls = self:getSoulCount()
+    self:setSoulCount(self:getSoulCount())
+end
+
+
+function FMTSShopWindow:setSoulCount(souls)
+    if souls == nil then return end
     if souls == self.lastSoulCount then return end
 
     self.lastSoulCount = souls
@@ -924,5 +953,17 @@ function FMTSShopWindow.Open(player)
 
     FMTSShopWindow.instance = window
     window:playShopSound()
+    sendClientCommand("FMTS", "RequestShopCatalog", {})
     return window
 end
+
+
+Events.OnServerCommand.Add(function(module, command, args)
+    local instance = FMTSShopWindow.instance
+
+    if not instance or not module or not command then
+        return
+    end
+
+    instance:handleServerCommand(module, command, args)
+end)
